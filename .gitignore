@@ -1,0 +1,18 @@
+# Virtual environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Personal and uploaded data
+/data/
+
+# Environment variables
+.env
+.env.*
+
+# Temporary files
+*.log
+*.tmp
