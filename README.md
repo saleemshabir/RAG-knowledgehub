@@ -1,103 +1,167 @@
-Knowledge Hub – PDF-Based RAG Application
+<div align="center">
 
-Knowledge Hub is a Python-based document processing project and the foundation for a Retrieval-Augmented Generation (RAG) application. It allows users to upload PDF documents, extract their text, and store the extracted content locally for further processing.
+# 📚 Knowledge Hub
 
-The project is being developed step by step, with the goal of building a system that can retrieve relevant information from uploaded documents and provide context-aware answers.
+### PDF-Based RAG Application
 
-Features
+*Building a foundation for intelligent document understanding.*
 
-- Upload PDF documents through a REST API.
-- Extract text from PDF files using PyPDF.
-- Save uploaded documents locally.
-- Store extracted text for further processing.
-- FastAPI backend with interactive API documentation.
-- Basic file validation and error handling.
+<br>
 
-Tech Stack
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
+![PyPDF](https://img.shields.io/badge/PyPDF-E34F26?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
+![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
 
-- Language: Python
-- Backend: FastAPI
-- PDF Processing: PyPDF
-- Server: Uvicorn
-- File Handling: Python pathlib
-- API Testing: Swagger UI
+</div>
 
-Project Structure
+---
 
+## ✨ Overview
+
+**Knowledge Hub** is a Python-based document processing project and the foundation of a **Retrieval-Augmented Generation (RAG)** application.
+
+Upload a PDF, extract its text, and store it locally, ready for the next stages: chunking, embeddings, semantic search, and AI-powered question answering over your own documents.
+
+> 🚧 The project is being built step by step, with the goal of retrieving relevant information from uploaded documents and giving **context-aware answers**.
+
+---
+
+## 🚀 Features
+
+| | Feature |
+|---|---|
+| 📤 | Upload PDF documents through a REST API |
+| 📄 | Extract text from PDFs using **PyPDF** |
+| 💾 | Save uploaded documents locally |
+| 🗂️ | Store extracted text for further processing |
+| ⚡ | Fast **FastAPI** backend with interactive docs |
+| 🛡️ | Basic file validation and error handling |
+
+---
+
+## 🛠️ Tech Stack
+
+| Category | Technology |
+|---|---|
+| **Language** | Python |
+| **Backend** | FastAPI |
+| **PDF Processing** | PyPDF |
+| **Server** | Uvicorn |
+| **File Handling** | Python `pathlib` |
+| **API Testing** | Swagger UI |
+
+---
+
+## 📁 Project Structure
+
+```
 Knowledge-Hub/
 │
 ├── app/
 │   ├── app.py
 │   └── main.py
 │
-├── data/
-│   └── (Local uploaded files and extracted text)
+├── data/                # Local uploads & extracted text (not tracked by Git)
 │
 ├── requirements.txt
 ├── .gitignore
 └── README.md
+```
 
-Note: The data folder is kept locally and excluded from GitHub to protect uploaded documents.
+> 🔒 **Note:** The `data/` folder stays local and is excluded from GitHub to protect uploaded documents.
 
-Installation and Setup
+---
 
-1. Clone the Repository
+## ⚙️ Installation & Setup
 
+**1. Clone the repository**
+
+```bash
 git clone https://github.com/YOUR_USERNAME/Knowledge-Hub-RAG.git
-
-2. Navigate to the Project
-
 cd Knowledge-Hub-RAG
+```
 
-3. Create a Virtual Environment
+**2. Create a virtual environment**
 
+```bash
 python -m venv venv
+```
 
-4. Activate the Virtual Environment
+**3. Activate it**
 
-Windows:
-
+```bash
+# Windows
 venv\Scripts\activate
 
-5. Install Dependencies
+# macOS / Linux
+source venv/bin/activate
+```
 
+**4. Install dependencies**
+
+```bash
 pip install -r requirements.txt
+```
 
-6. Run the Application
+**5. Run the application** (from the project root)
 
-From the project root:
-
+```bash
 uvicorn app.app:app --reload
+```
 
-API Documentation
+---
 
-Once the server is running, open:
+## 📖 API Documentation
 
-http://127.0.0.1:8000/docs
+Once the server is running, open the interactive Swagger UI:
 
-Available endpoints:
+👉 **http://127.0.0.1:8000/docs**
 
-Method| Endpoint| Description
-GET| "/health"| Check application status
-POST| "/upload"| Upload a PDF and extract its text
+| Method | Endpoint | Description |
+|:---:|---|---|
+| `GET` | `/health` | Check application status |
+| `POST` | `/upload` | Upload a PDF and extract its text |
 
-Current Development Status
+---
+
+## 🗺️ Development Roadmap
+
+**Completed**
 
 - [x] FastAPI backend setup
 - [x] PDF upload functionality
 - [x] PDF text extraction
 - [x] Local text storage
 - [x] GitHub repository setup
+
+**Up next**
+
 - [ ] Text chunking
 - [ ] Embedding generation
 - [ ] Vector database integration
 - [ ] Semantic search
 - [ ] Context-aware question answering
 
-Future Goals
-
-The next development stages will focus on transforming Knowledge Hub into a complete RAG application by implementing document chunking, vector embeddings, semantic retrieval, and an AI-powered question-answering system.
+```
+PDF  ──▶  Text  ──▶  Chunks  ──▶  Embeddings  ──▶  Vector DB  ──▶  Answers
+ ✅        ✅          ⏳            ⏳               ⏳             ⏳
+```
 
 ---
 
-Knowledge Hub – Building a foundation for intelligent document understanding.
+## 🎯 Future Goals
+
+The next stages will turn Knowledge Hub into a complete RAG application by adding document chunking, vector embeddings, semantic retrieval, and an AI-powered question-answering system.
+
+---
+
+<div align="center">
+
+**Knowledge Hub** – *Building a foundation for intelligent document understanding.*
+
+⭐ If you like this project, consider giving it a star!
+
+</div>
