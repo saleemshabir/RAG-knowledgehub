@@ -16,3 +16,6 @@ __pycache__/
 # Temporary files
 *.log
 *.tmp
+chunks.json
+embeddings.npy
+chunks_backup.json
