@@ -147,7 +147,7 @@ Once the server is running, open the interactive Swagger UI:
 
 ```
 PDF  ──▶  Text  ──▶  Chunks  ──▶  Embeddings  ──▶  Vector DB  ──▶  Answers
- ✅        ✅          ⏳            ⏳               ⏳             ⏳
+ ✅        ✅          ✅            ✅               ✅             ⏳
 ```
 
 ---
