@@ -1,3 +1,5 @@
+import numpy as np
+import json
 from sentence_transformers import SentenceTransformer
 from pathlib import Path
 
@@ -22,3 +24,7 @@ print("Total chunks:", len(chunks))
 embeddings = model.encode(chunks)
 print("Embeddings generated successfully")
 print("Shape of embeddings:", embeddings.shape)
+np.save("embeddings.npy", embeddings)
+with open("chunks.json", "w", encoding="utf-8") as f:
+    json.dump(chunks, f, ensure_ascii=False, indent=4)
+    
