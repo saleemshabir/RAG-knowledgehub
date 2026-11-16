@@ -1,6 +1,6 @@
 from pathlib import Path
 data_path = Path("data")
-file_path = data_path / "Saleem.txt"
+file_path = data_path / "input.txt"
 text = file_path.read_text(encoding="utf-8")
 
 print(text)
