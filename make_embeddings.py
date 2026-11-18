@@ -1,30 +1,67 @@
-import numpy as np
-import json
-from sentence_transformers import SentenceTransformer
 from pathlib import Path
+import json
+import sys
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-# Load the embedding model
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# Project paths
+BASE_DIR = Path(__file__).resolve().parent
+CHUNKS_FILE = BASE_DIR / "chunks.json"
+EMBEDDINGS_FILE = BASE_DIR / "embeddings.npy"
 
-# Load the text file
-data_path = Path("data")
-file_path = data_path / "Saleem.txt"
-text = file_path.read_text(encoding="utf-8")
+# Embedding model
+MODEL_NAME = "all-MiniLM-L6-v2"
 
-# Generate chunks
-def chunk_text(text, chunk_size=500):
-    chunks = []
-    for i in range(0, len(text), chunk_size):
-        chunks.append(text[i:i + chunk_size])
-    return chunks
 
-chunks = chunk_text(text)
+def main():
+    # Check whether chunks.json exists
+    if not CHUNKS_FILE.exists():
+        raise FileNotFoundError(
+            f"Chunks file not found: {CHUNKS_FILE}"
+        )
 
-print("Total chunks:", len(chunks))
-embeddings = model.encode(chunks)
-print("Embeddings generated successfully")
-print("Shape of embeddings:", embeddings.shape)
-np.save("embeddings.npy", embeddings)
-with open("chunks.json", "w", encoding="utf-8") as f:
-    json.dump(chunks, f, ensure_ascii=False, indent=4)
-    
+    # Load chunks
+    with CHUNKS_FILE.open("r", encoding="utf-8") as f:
+        chunks = json.load(f)
+
+    if not chunks:
+        raise ValueError("No chunks available for embedding.")
+
+    print("Total chunks loaded:", len(chunks))
+
+    # Extract text from chunks
+    chunk_texts = [
+        chunk["text"] for chunk in chunks
+        if chunk.get("text", "").strip()
+    ]
+
+    if not chunk_texts:
+        raise ValueError("No valid text found in chunks.")
+
+    # Load embedding model
+    print("\nLoading embedding model...")
+    model = SentenceTransformer(MODEL_NAME)
+
+    # Generate embeddings
+    embeddings = model.encode(
+        chunk_texts,
+        convert_to_numpy=True,
+        show_progress_bar=True
+    )
+
+    print("\nEmbeddings generated successfully!")
+    print("Shape of embeddings:", embeddings.shape)
+
+    # Save embeddings
+    np.save(EMBEDDINGS_FILE, embeddings)
+
+    print("Embeddings saved successfully!")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+
+    except (OSError, ValueError, KeyError) as error:
+        print("\nError:", error)
+        sys.exit(1)
