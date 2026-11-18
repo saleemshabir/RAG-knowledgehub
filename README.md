@@ -1,167 +1,304 @@
 <div align="center">
-
 # 📚 Knowledge Hub
+### PDF-Based Retrieval-Augmented Generation (RAG) ApplicationTurning documents into intelligent, searchable knowledge.
 
-### PDF-Based RAG Application
+<br>"Python" (https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+"FastAPI" (https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+"Sentence Transformers" (https://img.shields.io/badge/Sentence--Transformers-Embeddings-orange?style=for-the-badge)
+"Ollama" (https://img.shields.io/badge/Ollama-Local%20LLM-black?style=for-the-badge)
+"NumPy" (https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
+"PyPDF" (https://img.shields.io/badge/PyPDF-PDF%20Processing-E34F26?style=for-the-badge)
+"Status" (https://img.shields.io/badge/Status-Core%20Pipeline%20Complete-success?style=for-the-badge)
 
-*Building a foundation for intelligent document understanding.*
+</div>---
 
-<br>
+✨ Overview
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge&logo=gunicorn&logoColor=white)
-![PyPDF](https://img.shields.io/badge/PyPDF-E34F26?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)
-![Status](https://img.shields.io/badge/Status-In%20Development-orange?style=for-the-badge)
+Knowledge Hub is a Python-based document processing and Retrieval-Augmented Generation (RAG) application that allows users to retrieve relevant information from documents and generate context-aware answers using a Large Language Model (LLM).
 
-</div>
+The project combines document extraction, text chunking, semantic embeddings, similarity-based retrieval, and local AI-powered answer generation.
 
----
+Instead of relying only on an LLM's pre-trained knowledge, Knowledge Hub retrieves relevant information from supplied documents before generating an answer.
 
-## ✨ Overview
-
-**Knowledge Hub** is a Python-based document processing project and the foundation of a **Retrieval-Augmented Generation (RAG)** application.
-
-Upload a PDF, extract its text, and store it locally, ready for the next stages: chunking, embeddings, semantic search, and AI-powered question answering over your own documents.
-
-> 🚧 The project is being built step by step, with the goal of retrieving relevant information from uploaded documents and giving **context-aware answers**.
+«💡 The goal: Make information stored in documents searchable, accessible, and useful through natural-language questions.»
 
 ---
 
-## 🚀 Features
+🚀 Features
 
-| | Feature |
-|---|---|
-| 📤 | Upload PDF documents through a REST API |
-| 📄 | Extract text from PDFs using **PyPDF** |
-| 💾 | Save uploaded documents locally |
-| 🗂️ | Store extracted text for further processing |
-| ⚡ | Fast **FastAPI** backend with interactive docs |
-| 🛡️ | Basic file validation and error handling |
-
----
-
-## 🛠️ Tech Stack
-
-| Category | Technology |
-|---|---|
-| **Language** | Python |
-| **Backend** | FastAPI |
-| **PDF Processing** | PyPDF |
-| **Server** | Uvicorn |
-| **File Handling** | Python `pathlib` |
-| **API Testing** | Swagger UI |
+| Feature
+📤| Upload PDF documents through a REST API
+📄| Extract text from PDF files using PyPDF
+💾| Store uploaded and extracted documents locally
+🧩| Split documents into smaller, overlapping text chunks
+🔢| Generate semantic embeddings using Sentence Transformers
+🔍| Retrieve relevant chunks using cosine similarity
+🤖| Generate context-aware answers using a local LLM through Ollama
+📚| Display source document names and chunk IDs
+🎯| Filter irrelevant results using a similarity threshold
+🛡️| Handle errors and out-of-scope questions
+⚡| FastAPI backend with interactive Swagger documentation
+📂| Process multiple text documents from a single data folder
 
 ---
 
-## 📁 Project Structure
+🛠️ Tech Stack
 
-```
+Category| Technology
+Language| Python
+Backend| FastAPI
+PDF Processing| PyPDF
+Text Embeddings| Sentence Transformers
+Embedding Model| "all-MiniLM-L6-v2"
+Numerical Operations| NumPy
+Similarity Search| Cosine Similarity
+Large Language Model| Qwen 2.5 (1.5B)
+LLM Runtime| Ollama
+API Server| Uvicorn
+API Testing| Swagger UI
+File Handling| Python "pathlib"
+
+---
+
+📁 Project Structure
+
 Knowledge-Hub/
 │
 ├── app/
 │   ├── app.py
 │   └── main.py
 │
-├── data/                # Local uploads & extracted text (not tracked by Git)
+├── data/
+│   ├── input.txt
+│   ├── Saleem.txt
+│   └── RAG_chunks.txt
+│
+├── make_chunks.py
+├── make_embeddings.py
+├── retrieve.py
+│
+├── chunks.json
+├── embeddings.npy
 │
 ├── requirements.txt
 ├── .gitignore
 └── README.md
-```
 
-> 🔒 **Note:** The `data/` folder stays local and is excluded from GitHub to protect uploaded documents.
+«🔒 Note: The "data/" folder contains local documents and extracted text. It is excluded from Git tracking to avoid uploading private or personal documents.»
+
+«📌 The current chunking script processes ".txt" files inside "data/". PDF text extraction is supported through the document-processing API, but direct PDF ingestion into the RAG chunking pipeline is a future improvement.»
 
 ---
 
-## ⚙️ Installation & Setup
+⚙️ Installation & Setup
 
-**1. Clone the repository**
+1. Clone the repository
 
-```bash
 git clone https://github.com/YOUR_USERNAME/Knowledge-Hub-RAG.git
 cd Knowledge-Hub-RAG
-```
 
-**2. Create a virtual environment**
+2. Create a virtual environment
 
-```bash
 python -m venv venv
-```
 
-**3. Activate it**
+3. Activate the environment
 
-```bash
 # Windows
 venv\Scripts\activate
 
 # macOS / Linux
 source venv/bin/activate
-```
 
-**4. Install dependencies**
+4. Install dependencies
 
-```bash
 pip install -r requirements.txt
-```
 
-**5. Run the application** (from the project root)
+5. Install and configure Ollama
 
-```bash
+Install "Ollama" (https://ollama.com/) and download the model:
+
+ollama pull qwen2.5:1.5b
+
+Make sure Ollama is running before using the RAG question-answering pipeline.
+
+---
+
+🔄 How the RAG Pipeline Works
+
+Knowledge Hub follows a Retrieval-Augmented Generation workflow.
+
+1. Document Extraction
+
+PDF documents are uploaded through the FastAPI backend. PyPDF extracts their text, which is stored locally for further processing.
+
+2. Text Chunking
+
+Large text documents are divided into smaller, manageable pieces.
+
+Current configuration:
+
+Parameter| Value
+Chunk size| 500 characters
+Chunk overlap| 50 characters
+
+Overlapping chunks help preserve context between consecutive pieces of text.
+
+Each chunk also stores metadata such as its unique ID and original source filename.
+
+3. Embedding Generation
+
+The "all-MiniLM-L6-v2" model converts each text chunk into a numerical vector.
+
+These embeddings represent the semantic meaning of the text and allow the system to compare questions with document content.
+
+4. Semantic Retrieval
+
+When a user submits a question:
+
+- The question is converted into an embedding.
+- Cosine similarity measures how closely each document chunk matches the question.
+- The system ranks the results and retrieves the most relevant chunks.
+- A similarity threshold filters out irrelevant results.
+
+5. Answer Generation
+
+The retrieved information is passed as context to the Qwen 2.5 model through Ollama.
+
+The model generates an answer based on the retrieved document content.
+
+6. Source Attribution
+
+The application displays the source filenames and chunk IDs used to generate the answer, making the retrieved information easier to trace.
+
+---
+
+▶️ Running the Project
+
+Step 1: Generate text chunks
+
+python make_chunks.py
+
+Reads all ".txt" files in the "data/" directory and generates "chunks.json".
+
+Step 2: Generate embeddings
+
+python make_embeddings.py
+
+Converts the generated chunks into embeddings and saves them in "embeddings.npy".
+
+Step 3: Run the RAG application
+
+python retrieve.py
+
+Enter a question when prompted:
+
+Enter your question: What is the purpose of text chunking in a RAG system?
+
+The application retrieves relevant chunks and generates an answer using Ollama.
+
+---
+
+📖 API Documentation
+
+The FastAPI backend provides an interface for document uploading and text extraction.
+
+Start the API server from the project root:
+
 uvicorn app.app:app --reload
-```
+
+Once the server is running, open Swagger UI:
+
+👉 http://127.0.0.1:8000/docs
+
+Method| Endpoint| Description
+"GET"| "/health"| Check application status
+"POST"| "/upload"| Upload a PDF and extract its text
 
 ---
 
-## 📖 API Documentation
+🧪 Testing & Validation
 
-Once the server is running, open the interactive Swagger UI:
+The core RAG pipeline has been tested with multiple documents and different types of questions.
 
-👉 **http://127.0.0.1:8000/docs**
+Test| Expected Behaviour| Result
+Multiple document processing| Process all ".txt" files| ✅ Passed
+Relevant question| Retrieve matching chunks| ✅ Passed
+Cross-document retrieval| Retrieve information from different source files| ✅ Passed
+Source attribution| Display source filename and chunk ID| ✅ Passed
+Out-of-scope question| Reject irrelevant queries| ✅ Passed
+Answer generation| Generate answers using retrieved context| ✅ Passed
 
-| Method | Endpoint | Description |
-|:---:|---|---|
-| `GET` | `/health` | Check application status |
-| `POST` | `/upload` | Upload a PDF and extract its text |
+Example Questions
+
+Relevant question:
+
+Who is Saleem, and what is he currently doing?
+
+The system retrieves information from "Saleem.txt" and generates an answer using its content.
+
+Another relevant question:
+
+What is the purpose of text chunking in a RAG system?
+
+The system retrieves information from "RAG_chunks.txt".
+
+Out-of-scope question:
+
+What is the capital of Japan?
+
+If no relevant chunks meet the similarity threshold, the application responds:
+
+I don't know based on the information provided.
 
 ---
 
-## 🗺️ Development Roadmap
+🗺️ Development Roadmap
 
-**Completed**
+Completed
 
 - [x] FastAPI backend setup
 - [x] PDF upload functionality
 - [x] PDF text extraction
 - [x] Local text storage
-- [x] GitHub repository setup
+- [x] Multi-document text processing
+- [x] Text chunking with overlap
+- [x] Unique chunk IDs and source metadata
+- [x] Embedding generation
+- [x] Semantic similarity retrieval
+- [x] Top-K relevant chunk selection
+- [x] Similarity threshold filtering
+- [x] Local LLM integration using Ollama
+- [x] Context-aware answer generation
+- [x] Source citations
+- [x] Out-of-scope query handling
+- [x] Basic error handling and validation
 
-**Up next**
+Future Improvements
 
-- [ ] Text chunking
-- [ ] Embedding generation
+- [ ] Direct PDF ingestion into the RAG pipeline
 - [ ] Vector database integration
-- [ ] Semantic search
-- [ ] Context-aware question answering
-
-```
-PDF  ──▶  Text  ──▶  Chunks  ──▶  Embeddings  ──▶  Vector DB  ──▶  Answers
- ✅        ✅          ✅            ✅               ✅             ⏳
-```
+- [ ] Web-based user interface
+- [ ] Conversational chat history
+- [ ] Improved retrieval and ranking
+- [ ] Additional document format support
+- [ ] Deployment and cloud hosting
 
 ---
 
-## 🎯 Future Goals
+🎯 Future Goals
 
-The next stages will turn Knowledge Hub into a complete RAG application by adding document chunking, vector embeddings, semantic retrieval, and an AI-powered question-answering system.
+The next stage of Knowledge Hub is to transform the current backend into a complete document intelligence application.
+
+Future development will focus on a user-friendly interface, improved document management, scalable vector storage, and more advanced retrieval techniques.
+
+The long-term goal is to create a system where users can upload their own documents and interact with their knowledge through natural-language conversations.
 
 ---
 
-<div align="center">
+<div align="center">Knowledge Hub
 
-**Knowledge Hub** – *Building a foundation for intelligent document understanding.*
+From documents to knowledge. From questions to answers.
 
-⭐ If you like this project, consider giving it a star!
+⭐ If you find this project interesting, consider giving it a star!
 
 </div>
