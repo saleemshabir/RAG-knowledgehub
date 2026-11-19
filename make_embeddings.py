@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 import json
 import sys
 import numpy as np
@@ -14,14 +15,19 @@ MODEL_NAME = "all-MiniLM-L6-v2"
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--chunks", type=Path, default=CHUNKS_FILE)
+    parser.add_argument("--output", type=Path, default=EMBEDDINGS_FILE)
+    args = parser.parse_args()
+
     # Check whether chunks.json exists
-    if not CHUNKS_FILE.exists():
+    if not args.chunks.exists():
         raise FileNotFoundError(
-            f"Chunks file not found: {CHUNKS_FILE}"
+            f"Chunks file not found: {args.chunks}"
         )
 
     # Load chunks
-    with CHUNKS_FILE.open("r", encoding="utf-8") as f:
+    with args.chunks.open("r", encoding="utf-8") as f:
         chunks = json.load(f)
 
     if not chunks:
@@ -30,10 +36,12 @@ def main():
     print("Total chunks loaded:", len(chunks))
 
     # Extract text from chunks
-    chunk_texts = [
-        chunk["text"] for chunk in chunks
-        if chunk.get("text", "").strip()
-    ]
+    chunk_texts = []
+    for chunk in chunks:
+        text = chunk.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise ValueError("Chunks contain missing or empty text.")
+        chunk_texts.append(text)
 
     if not chunk_texts:
         raise ValueError("No valid text found in chunks.")
@@ -53,7 +61,8 @@ def main():
     print("Shape of embeddings:", embeddings.shape)
 
     # Save embeddings
-    np.save(EMBEDDINGS_FILE, embeddings)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    np.save(args.output, embeddings)
 
     print("Embeddings saved successfully!")
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 import json
 import sys
 
@@ -63,13 +64,34 @@ def chunk_text(
 
 
 def main():
-    if not DATA_DIR.exists():
-        raise FileNotFoundError(
-            f"Data folder not found: {DATA_DIR}"
-        )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", nargs="?")
+    parser.add_argument("--input-dir", type=Path)
+    parser.add_argument("--output", type=Path)
+    args = parser.parse_args()
 
-    # Find all text documents
-    files = sorted(DATA_DIR.glob("*.txt"))
+    output_file = args.output or OUTPUT_FILE
+    requested_path = Path(args.input_file).resolve() if args.input_file else None
+    if args.input_dir:
+        if not args.input_dir.exists() or not args.input_dir.is_dir():
+            raise FileNotFoundError(
+                f"Input directory not found: {args.input_dir}"
+            )
+        files = sorted(args.input_dir.rglob("*.txt"))
+    elif requested_path is not None and requested_path.suffix.lower() == ".txt":
+        if not requested_path.exists():
+            raise FileNotFoundError(
+                f"Text document not found: {requested_path}"
+            )
+        files = [requested_path]
+    else:
+        if not DATA_DIR.exists():
+            raise FileNotFoundError(
+                f"Data folder not found: {DATA_DIR}"
+            )
+
+        # Find all text documents when no specific file is supplied.
+        files = sorted(DATA_DIR.glob("*.txt"))
 
     if not files:
         raise FileNotFoundError(
@@ -98,9 +120,17 @@ def main():
 
         document_chunks = chunk_text(
             cleaned_text,
-            source=file_path.name,
+            source=file_path.name[:-4],
             start_id=next_chunk_id
         )
+        if args.input_dir:
+            metadata_path = file_path.parent / "metadata.json"
+            if metadata_path.exists():
+                with metadata_path.open("r", encoding="utf-8") as metadata_file:
+                    metadata = json.load(metadata_file)
+                for chunk in document_chunks:
+                    chunk["source"] = metadata.get("filename", chunk["source"])
+                    chunk["document_id"] = file_path.parent.name
 
         all_chunks.extend(document_chunks)
         next_chunk_id += len(document_chunks)
@@ -111,7 +141,8 @@ def main():
         raise ValueError("No chunks were generated.")
 
     # Save all document chunks
-    with OUTPUT_FILE.open("w", encoding="utf-8") as f:
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with output_file.open("w", encoding="utf-8") as f:
         json.dump(
             all_chunks,
             f,

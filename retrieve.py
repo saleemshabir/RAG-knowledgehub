@@ -1,39 +1,54 @@
-
 import json
+import os
+from functools import lru_cache
 from pathlib import Path
-
 import numpy as np
 import requests
 from sklearn.metrics.pairwise import cosine_similarity
 from sentence_transformers import SentenceTransformer
 
-# Project paths
 BASE_DIR = Path(__file__).resolve().parent
 CHUNKS_FILE = BASE_DIR / "chunks.json"
 EMBEDDINGS_FILE = BASE_DIR / "embeddings.npy"
 
-# Retrieval settings
 TOP_K = 3
 SIMILARITY_THRESHOLD = 0.20
 
-# Ollama settings
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "qwen2.5:1.5b"
+OLLAMA_URL = os.environ.get(
+    "OLLAMA_URL", "http://localhost:11434/api/generate"
+)
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b")
+OLLAMA_KEEP_ALIVE = os.environ.get("OLLAMA_KEEP_ALIVE", "10m")
+OLLAMA_NUM_PREDICT = int(os.environ.get("OLLAMA_NUM_PREDICT", "256"))
 
 
-def load_data():
+def load_data(data_directory=BASE_DIR):
     """Load the latest chunks and embeddings."""
 
-    if not CHUNKS_FILE.exists():
-        raise FileNotFoundError("chunks.json not found.")
+    data_directory = Path(data_directory)
+    chunks_file = data_directory / "chunks.json"
+    embeddings_file = data_directory / "embeddings.npy"
 
-    if not EMBEDDINGS_FILE.exists():
-        raise FileNotFoundError("embeddings.npy not found.")
+    if not chunks_file.exists():
+        raise FileNotFoundError(f"chunks.json not found in {data_directory}.")
 
-    with CHUNKS_FILE.open("r", encoding="utf-8") as f:
+    if not embeddings_file.exists():
+        raise FileNotFoundError(f"embeddings.npy not found in {data_directory}.")
+
+    return _load_data_cached(
+        str(chunks_file.resolve()),
+        str(embeddings_file.resolve()),
+        chunks_file.stat().st_mtime_ns,
+        embeddings_file.stat().st_mtime_ns,
+    )
+
+
+@lru_cache(maxsize=4)
+def _load_data_cached(chunks_path, embeddings_path, chunks_modified, embeddings_modified):
+    with Path(chunks_path).open("r", encoding="utf-8") as f:
         chunks = json.load(f)
 
-    embeddings = np.load(EMBEDDINGS_FILE)
+    embeddings = np.load(embeddings_path)
 
     if not isinstance(chunks, list) or not chunks:
         raise ValueError("No valid chunks found.")
@@ -59,10 +74,16 @@ def load_data():
     return chunks, embeddings
 
 
-def retrieve_chunks(query_text, model):
+def retrieve_chunks(
+    query_text,
+    model,
+    data_directory=BASE_DIR,
+    include_scores=False,
+    verbose=True,
+):
     """Retrieve relevant chunks using the latest data."""
 
-    chunks, embeddings = load_data()
+    chunks, embeddings = load_data(data_directory)
 
     query_embedding = model.encode([query_text])
 
@@ -76,11 +97,14 @@ def retrieve_chunks(query_text, model):
         embeddings
     )[0]
 
-    ranked_indices = np.argsort(similarities)[::-1]
+    top_count = min(TOP_K, len(similarities))
+    top_indices = np.argpartition(similarities, -top_count)[-top_count:]
+    ranked_indices = top_indices[np.argsort(similarities[top_indices])[::-1]]
 
     relevant_chunks = []
 
-    print("\n--- Retrieved Chunks ---")
+    if verbose:
+        print("\n--- Retrieved Chunks ---")
 
     for index in ranked_indices:
         score = float(similarities[index])
@@ -90,12 +114,13 @@ def retrieve_chunks(query_text, model):
 
         chunk = chunks[index]
 
-        relevant_chunks.append(chunk)
+        relevant_chunks.append((chunk, score) if include_scores else chunk)
 
-        print(f"\nChunk ID: {chunk['chunk_id']}")
-        print(f"Source: {chunk['source']}")
-        print(f"Similarity Score: {score:.4f}")
-        print(chunk["text"])
+        if verbose:
+            print(f"\nChunk ID: {chunk['chunk_id']}")
+            print(f"Source: {chunk['source']}")
+            print(f"Similarity Score: {score:.4f}")
+            print(chunk["text"])
 
         if len(relevant_chunks) >= TOP_K:
             break
@@ -103,9 +128,7 @@ def retrieve_chunks(query_text, model):
     return relevant_chunks
 
 
-def generate_answer(query_text, relevant_chunks):
-    """Generate an answer using Ollama."""
-
+def build_prompt(query_text, relevant_chunks):
     context = "\n\n".join(
         f"Source: {chunk['source']}, "
         f"Chunk ID: {chunk['chunk_id']}\n"
@@ -114,12 +137,8 @@ def generate_answer(query_text, relevant_chunks):
     )
 
     prompt = f"""
-You are a helpful assistant.
-Answer using ONLY the provided context.
-Do not use outside knowledge.
-
-If the answer is not present in the context,
-say: I don't know based on the provided information.
+Answer using only the supplied context, in up to three concise sentences.
+If the answer is not in the context, say: I don't know based on the provided information.
 
 Context:
 {context}
@@ -129,16 +148,53 @@ Question:
 
 Answer:
 """
+    return prompt
 
-    response = requests.post(
+
+def _generate_request(query_text, relevant_chunks, stream):
+    return requests.post(
         OLLAMA_URL,
         json={
             "model": OLLAMA_MODEL,
-            "prompt": prompt,
-            "stream": False
+            "prompt": build_prompt(query_text, relevant_chunks),
+            "stream": stream,
+            "keep_alive": OLLAMA_KEEP_ALIVE,
+            "options": {
+                "num_predict": OLLAMA_NUM_PREDICT,
+                "temperature": 0.2,
+            },
         },
-        timeout=120
+        stream=stream,
+        timeout=(10, 120),
     )
+
+
+def open_answer_stream(query_text, relevant_chunks):
+    """Open Ollama's streamed response without waiting for generation to finish."""
+
+    response = _generate_request(query_text, relevant_chunks, stream=True)
+    response.raise_for_status()
+    return response
+
+
+def iter_answer_tokens(response):
+    """Yield generated text fragments from an Ollama streaming response."""
+
+    for line in response.iter_lines(decode_unicode=True):
+        if not line:
+            continue
+        data = json.loads(line)
+        token = data.get("response")
+        if isinstance(token, str) and token:
+            yield token
+        if data.get("done"):
+            break
+
+
+def generate_answer(query_text, relevant_chunks):
+    """Generate an answer using Ollama."""
+
+    response = _generate_request(query_text, relevant_chunks, stream=False)
 
     response.raise_for_status()
 

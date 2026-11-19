@@ -2,3 +2,7 @@ Fastapi
 uvicorn
 pypdf
 python-multipart
+sentence-transformers
+scikit-learn
+numpy
+requests

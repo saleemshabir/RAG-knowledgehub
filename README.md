@@ -262,15 +262,45 @@ The FastAPI backend provides an interface for document uploading and text extrac
 Start the API server from the project root:
 
 ```bash
-uvicorn app.app:app --reload
+uvicorn app.main_app:app --reload
 ```
 
 Once the server is running, open Swagger UI at **http://127.0.0.1:8000/docs**
 
+Start the frontend in a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+In local development, set the browser-origin configuration before starting the
+backend in PowerShell:
+
+```powershell
+$env:FRONTEND_ORIGINS = "http://localhost:5173,http://127.0.0.1:5173"
+uvicorn app.main_app:app --reload
+```
+
+The app supports multiple PDF/TXT/Markdown/CSV/JSON files in one shared document
+library. This version has no login or separate accounts: anyone with access to
+the app can see, query, and remove files in that library. Do not expose it to
+untrusted users or upload private documents to a public deployment.
+
+For a trusted hosted environment, set `FRONTEND_ORIGINS` to the exact frontend
+origin and point `KNOWLEDGEHUB_DATABASE_PATH` and `KNOWLEDGEHUB_DATA_DIR` at
+persistent storage. Set `VITE_API_URL` to the deployed API URL when building the
+frontend. The API host must also be able to reach Ollama; configure `OLLAMA_URL`
+and `OLLAMA_MODEL` for the deployment.
+
 | Method | Endpoint | Description |
 |:-:|---|---|
 | `GET` | `/health` | Check application status |
-| `POST` | `/upload` | Upload a PDF and extract its text |
+| `GET` | `/documents` | List the workspace's documents |
+| `POST` | `/upload` | Upload multiple supported document files |
+| `DELETE` | `/documents/{document_id}` | Remove a workspace document |
+| `POST` | `/ask` | Ask a question across the workspace's indexed documents |
 
 <br>
 
