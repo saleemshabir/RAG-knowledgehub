@@ -46,7 +46,7 @@ Instead of relying only on an LLM's pre-trained knowledge, Knowledge Hub first r
 | | Feature | Description |
 |:-:|---|---|
 | 📤 | **PDF Upload** | Upload PDF documents through a REST API |
-| 📄 | **Text Extraction** | Extract text from PDF files using PyPDF |
+| 📄 | **Text Extraction** | Extract embedded PDF text with PyPDF and OCR scanned pages locally |
 | 💾 | **Local Storage** | Store uploaded and extracted documents locally |
 | 🧩 | **Smart Chunking** | Split documents into smaller, overlapping text chunks |
 | 🔢 | **Semantic Embeddings** | Generate embeddings using Sentence Transformers |
@@ -69,6 +69,7 @@ Instead of relying only on an LLM's pre-trained knowledge, Knowledge Hub first r
 | **Language** | Python |
 | **Backend** | FastAPI |
 | **PDF Processing** | PyPDF |
+| **Scanned PDF OCR** | PyMuPDF, Tesseract OCR |
 | **Text Embeddings** | Sentence Transformers |
 | **Embedding Model** | `all-MiniLM-L6-v2` |
 | **Numerical Operations** | NumPy |
@@ -181,7 +182,10 @@ flowchart LR
 
 ### 1 · Document Extraction
 
-PDF documents are uploaded through the FastAPI backend. PyPDF extracts their text, which is stored locally for further processing.
+PDF documents are uploaded through the FastAPI backend. PyPDF extracts embedded
+text; pages without an extractable text layer are rendered with PyMuPDF and
+processed locally by Tesseract OCR. Extracted text is stored locally for further
+processing. Scanned PDFs require Tesseract to be installed on the API host.
 
 ### 2 · Text Chunking
 
@@ -258,6 +262,18 @@ The application retrieves relevant chunks and generates an answer using Ollama.
 ## 📖 API Documentation
 
 The FastAPI backend provides an interface for document uploading and text extraction.
+
+### Scanned PDF OCR
+
+Install Tesseract OCR on the API host before uploading scanned PDFs. On Windows,
+install it with:
+
+```powershell
+winget install --id UB-Mannheim.TesseractOCR --exact
+```
+
+Restart the API after installation so it can find Tesseract. OCR runs locally;
+uploaded documents are not sent to an external OCR service.
 
 Start the API server from the project root:
 

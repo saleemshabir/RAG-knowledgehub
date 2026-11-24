@@ -1,6 +1,8 @@
 Fastapi
 uvicorn
-pypdf
+PyMuPDF>=1.24,<2
+pytesseract
+Pillow
 python-multipart
 sentence-transformers
 scikit-learn

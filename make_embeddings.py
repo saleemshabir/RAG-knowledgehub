@@ -53,8 +53,10 @@ def main():
     # Generate embeddings
     embeddings = model.encode(
         chunk_texts,
+        batch_size=64,
         convert_to_numpy=True,
-        show_progress_bar=True
+        show_progress_bar=False,
+        normalize_embeddings=True
     )
 
     print("\nEmbeddings generated successfully!")

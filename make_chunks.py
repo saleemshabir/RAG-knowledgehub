@@ -9,8 +9,8 @@ DATA_DIR = BASE_DIR / "data"
 OUTPUT_FILE = BASE_DIR / "chunks.json"
 
 # Chunk settings
-CHUNK_SIZE = 500
-CHUNK_OVERLAP = 50
+CHUNK_SIZE = 700
+CHUNK_OVERLAP = 70
 
 
 def clean_text(text):
@@ -146,8 +146,7 @@ def main():
         json.dump(
             all_chunks,
             f,
-            ensure_ascii=False,
-            indent=4
+            ensure_ascii=False
         )
 
     print("\n--- Chunking Summary ---")

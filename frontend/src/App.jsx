@@ -28,10 +28,13 @@ function App() {
   const [queuedFiles, setQueuedFiles] = useState([]);
   const [documentsLoading, setDocumentsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deletingDocumentId, setDeletingDocumentId] = useState("");
   const [asking, setAsking] = useState(false);
   const [question, setQuestion] = useState("");
+  const [sentQuestion, setSentQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [sources, setSources] = useState([]);
+  const [figures, setFigures] = useState([]);
   const [error, setError] = useState("");
   const [apiStatus, setApiStatus] = useState("checking");
   const [activeSection, setActiveSection] = useState("overview");
@@ -150,6 +153,8 @@ function App() {
   };
 
   const handleDeleteDocument = async (documentId) => {
+    setDeletingDocumentId(documentId);
+    setError("");
     try {
       await apiRequest(`/documents/${documentId}`, { method: "DELETE" });
       const remaining = documents.filter((item) => item.id !== documentId);
@@ -159,13 +164,18 @@ function App() {
       }
       setAnswer("");
       setSources([]);
+      setFigures([]);
+      setSentQuestion("");
     } catch (deleteError) {
       setError(deleteError.message || "Could not remove the document.");
+    } finally {
+      setDeletingDocumentId("");
     }
   };
 
   const handleAsk = async (value = question) => {
-    if (!value.trim()) {
+    const sentQuestion = value.trim();
+    if (!sentQuestion) {
       setError("Enter a question to get started.");
       return;
     }
@@ -175,16 +185,19 @@ function App() {
       return;
     }
     setAsking(true);
+    setQuestion("");
+    setSentQuestion(sentQuestion);
     setError("");
     setAnswer("");
     setSources([]);
+    setFigures([]);
     setActiveSection("assistant");
 
     try {
       const response = await fetch(`${API_URL}/ask/stream`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: value }),
+        body: JSON.stringify({ question: sentQuestion }),
       });
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
@@ -207,6 +220,7 @@ function App() {
           completed = true;
           if (event.answer) setAnswer(event.answer);
           setSources(Array.isArray(event.sources) ? event.sources : []);
+          setFigures(Array.isArray(event.figures) ? event.figures : []);
         } else if (event.type === "error") {
           throw new Error(event.message || "Answer generation failed.");
         }
@@ -346,13 +360,40 @@ function App() {
                   </div>
                 </div>
                 <div className="metadata-section">
-                  <div className="section-title"><div><span className="panel-eyebrow">FILE DETAILS</span><h3>Selected document</h3></div><span className="metadata-status"><i className={`status-dot ${selectedDocument ? "online" : ""}`} />{selectedDocument ? "Indexed" : "No selection"}</span></div>
+                  <div className="section-title">
+                    <div><span className="panel-eyebrow">FILE DETAILS</span><h3>Selected document</h3></div>
+                    <div className="metadata-actions">
+                      <span className="metadata-status"><i className={`status-dot ${selectedDocument ? "online" : ""}`} />{selectedDocument ? "Indexed" : "No selection"}</span>
+                      {selectedDocument && (
+                        <button
+                          className="delete-selected-document"
+                          onClick={() => handleDeleteDocument(selectedDocument.id)}
+                          disabled={Boolean(deletingDocumentId)}
+                        >
+                          {deletingDocumentId === selectedDocument.id ? "Deleting…" : "Delete document"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
                   <div className="metadata-grid">
                     <div className="metadata-item"><span>SIZE</span><strong>{selectedDocument ? fileSize(selectedDocument.size_bytes) : "—"}</strong></div>
                     <div className="metadata-item"><span>TYPE</span><strong>{selectedDocument?.file_type || "—"}</strong></div>
                     <div className="metadata-item"><span>PAGES</span><strong>{selectedDocument?.page_count ?? (selectedDocument ? "N/A" : "—")}</strong></div>
                     <div className="metadata-item"><span>STATUS</span><strong className={selectedDocument ? "text-success" : ""}>{selectedDocument ? "Indexed" : "Waiting"}</strong></div>
                   </div>
+                </div>
+                <div className="combined-library">
+                  <div className="section-title"><div><span className="panel-eyebrow">YOUR FILES</span><h3>Document library</h3></div><span className="pipeline-count">{documents.length} total</span></div>
+                  {documents.length ? (
+                    <div className="document-list">{documents.map((item) => (
+                      <div className={`library-document ${selectedDocument?.id === item.id ? "selected" : ""}`} key={item.id}>
+                        <button className="library-select" onClick={() => setSelectedDocumentId(item.id)}>
+                          <span className="recent-file-icon">â–¤</span><span><strong>{item.filename}</strong><small>{item.file_type} Â· {fileSize(item.size_bytes)} Â· {item.chunks_count} chunks</small></span>
+                        </button>
+                        <button className="delete-document" onClick={() => handleDeleteDocument(item.id)} disabled={Boolean(deletingDocumentId)} aria-label={`Delete ${item.filename}`} title="Delete document">Delete</button>
+                      </div>
+                    ))}</div>
+                  ) : <p className="empty-library">Your uploaded documents will appear here.</p>}
                 </div>
               </div>
 
@@ -379,20 +420,6 @@ function App() {
                   </article>
                 </div>
               </div>
-
-              <div className="panel library-panel">
-                <div className="section-title"><div><span className="panel-eyebrow">SHARED LIBRARY</span><h3>All documents</h3></div><span className="pipeline-count">{documents.length} total</span></div>
-                {documents.length ? (
-                  <div className="document-list">{documents.map((item) => (
-                    <div className={`library-document ${selectedDocument?.id === item.id ? "selected" : ""}`} key={item.id}>
-                      <button className="library-select" onClick={() => setSelectedDocumentId(item.id)}>
-                        <span className="recent-file-icon">▤</span><span><strong>{item.filename}</strong><small>{item.file_type} · {fileSize(item.size_bytes)} · {item.chunks_count} chunks</small></span>
-                      </button>
-                      <button className="delete-document" onClick={() => handleDeleteDocument(item.id)} aria-label={`Remove ${item.filename}`} title="Remove document">×</button>
-                    </div>
-                  ))}</div>
-                ) : <p className="empty-library">Your uploaded documents will appear here.</p>}
-              </div>
             </section>
 
             <div className="splitter content-splitter" role="separator" aria-label="Resize document panel" aria-orientation="vertical" onPointerDown={(event) => beginResize(event, "document", documentWidth)} />
@@ -409,11 +436,21 @@ function App() {
                     <button className="suggestion" disabled={!documents.length} onClick={() => { setQuestion("What are the key points?"); handleAsk("What are the key points?"); }}>What are the key points? <span>→</span></button>
                   </div>
                 ) : asking && !answer ? (
-                  <div className="thinking"><span /><span /><span />Searching your knowledge base…</div>
+                  <div className="chat-response">
+                    {sentQuestion && <div className="sent-question">{sentQuestion}</div>}
+                    <div className="thinking"><span /><span /><span />Searching your knowledge base…</div>
+                  </div>
                 ) : (
                   <div className="chat-response">
+                    {sentQuestion && <div className="sent-question">{sentQuestion}</div>}
                     <div className="answer-heading">✦ AI RESPONSE</div><p className="answer-text">{answer}</p>
                     {asking && <div className="thinking answer-thinking"><span /><span /><span />Writing answer…</div>}
+                    {figures.length > 0 && <div className="figures"><h3>Figures</h3>{figures.map((figure, index) => (
+                      <figure key={`${figure.document_id}-${figure.page}-${index}`}>
+                        <img src={`${API_URL}${figure.url}`} alt={`Figure from ${figure.filename}, page ${figure.page}`} />
+                        <figcaption>{figure.filename} · Page {figure.page}</figcaption>
+                      </figure>
+                    ))}</div>}
                     {sources.length > 0 && <div className="sources"><h3>Retrieved sources</h3>{sources.map((source, index) => {
                       const sourceDocument = documents.find((item) => item.id === source.document_id);
                       return <div className="source-item" key={`${source.document_id}-${source.chunk_id}-${index}`}><span>{index + 1}</span><div><strong>{sourceDocument?.filename || source.source || "Document"}</strong><small>Chunk {source.chunk_id}</small></div></div>;
