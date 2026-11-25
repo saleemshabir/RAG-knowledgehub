@@ -147,7 +147,7 @@ DOCUMENTS_FOLDER.mkdir(parents=True, exist_ok=True)
 app.mount("/document-files", StaticFiles(directory=DOCUMENTS_FOLDER), name="document-files")
 
 embedding_model = None
-
+rapid_ocr_engine = None
 logger = logging.getLogger(__name__)
 
 
@@ -288,6 +288,26 @@ def serialize_document(row):
 
 
 
+def extract_rapid_ocr_text(image):
+    global rapid_ocr_engine
+
+    if rapid_ocr_engine is None:
+        try:
+            from rapidocr import RapidOCR
+        except ImportError as error:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Local OCR dependencies are missing. "
+                    "Install requirements.txt and restart the API."
+                ),
+            ) from error
+        rapid_ocr_engine = RapidOCR()
+
+    result = rapid_ocr_engine(image)
+    return "\n".join(result.txts or ())
+
+
 def extract_pdf_page_text(content):
 
     with pymupdf.open(stream=content, filetype="pdf") as pdf:
@@ -324,30 +344,10 @@ def extract_pdf_page_text(content):
 
 
 
-        if not tesseract_path:
-
-            raise HTTPException(
-
-                status_code=503,
-
-                detail=(
-
-                    "This PDF contains scanned pages and needs local OCR. "
-
-                    "Install Tesseract OCR, restart the API, and try again."
-
-                ),
-
-            )
-
-
-
-        pytesseract.pytesseract.tesseract_cmd = tesseract_path
-
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
         with pymupdf.open(stream=content, filetype="pdf") as pdf:
-
             for page_index in pages_needing_ocr:
-
                 pixmap = pdf[page_index].get_pixmap(
 
                     dpi=150, colorspace=pymupdf.csGRAY, alpha=False
@@ -357,14 +357,13 @@ def extract_pdf_page_text(content):
                 image = Image.frombytes(
 
                     "L", (pixmap.width, pixmap.height), pixmap.samples
-
                 )
-
-                page_texts[page_index] = pytesseract.image_to_string(
-
-                    image, lang="eng"
-
-                )
+                if tesseract_path:
+                    page_texts[page_index] = pytesseract.image_to_string(
+                        image, lang="eng"
+                    )
+                else:
+                    page_texts[page_index] = extract_rapid_ocr_text(image)
 
 
 

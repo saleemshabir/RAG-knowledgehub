@@ -69,7 +69,7 @@ Instead of relying only on an LLM's pre-trained knowledge, Knowledge Hub first r
 | **Language** | Python |
 | **Backend** | FastAPI |
 | **PDF Processing** | PyPDF |
-| **Scanned PDF OCR** | PyMuPDF, Tesseract OCR |
+| **Scanned PDF OCR** | PyMuPDF, Tesseract OCR, RapidOCR |
 | **Text Embeddings** | Sentence Transformers |
 | **Embedding Model** | `all-MiniLM-L6-v2` |
 | **Numerical Operations** | NumPy |
@@ -265,15 +265,12 @@ The FastAPI backend provides an interface for document uploading and text extrac
 
 ### Scanned PDF OCR
 
-Install Tesseract OCR on the API host before uploading scanned PDFs. On Windows,
-install it with:
-
-```powershell
-winget install --id UB-Mannheim.TesseractOCR --exact
-```
-
-Restart the API after installation so it can find Tesseract. OCR runs locally;
-uploaded documents are not sent to an external OCR service.
+Scanned PDF pages are processed locally. The API uses Tesseract when it is
+installed and automatically falls back to RapidOCR otherwise. RapidOCR is
+installed with `requirements.txt`; no separate OCR executable is needed.
+Its OCR models are downloaded and cached locally on first use, so internet
+access is needed once to fetch them. Uploaded documents are not sent to an
+external OCR service.
 
 Start the API server from the project root:
 

@@ -2,6 +2,7 @@ Fastapi
 uvicorn
 PyMuPDF>=1.24,<2
 pytesseract
+rapidocr>=3.10,<4
 Pillow
 python-multipart
 sentence-transformers
